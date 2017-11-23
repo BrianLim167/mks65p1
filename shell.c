@@ -62,6 +62,10 @@ char** run_the_shell(){
   printf("C-SHELL... %s $ ",workingdir);
   //user input part:
   fgets(command_input,sizeof(command_input),stdin);//(destination,bytes,file pointer)
+  if(strcmp(command_input,"exit\n")==0){
+    printf("\nbyebye buddy\n");
+    exit(1);
+  }
   //fgets appends a new line to the end of the string, this gets rid of it. 
   while(command_input){
     if(command_input="\n"){
@@ -74,8 +78,10 @@ char** run_the_shell(){
 }
 
 void main(){//void so it doesn't exit the program
-  char** cmd=malloc(100*sizeof(char*));
-  cmd=run_the_shell();
-  int f=fork();
-  execute(cmd);
+  while(1){
+    char** cmd=malloc(100*sizeof(char*));
+    cmd=run_the_shell();
+    //int f=fork();
+    execute(cmd);
+  }
 }
