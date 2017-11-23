@@ -30,43 +30,52 @@ int parse(char* line){
 
     char input[256];
     char token[256]
-  
+
     scanf("%s", input);
 
     while (token = strsep(&input, ";"));
-  
+
     return 0;
   */
-  
-  
+
   return 0;
 }
-
-int execute(){
-  
+//idk if this works
+void execute(char** cmd){
+  int f=fork();
+  if(f==0){
+    printf("\nchild executing...\n");
+    execvp(cmd[0],cmd);
+  }
+  else{
+    int * status;
+    printf("waiting");
+    wait( &status );
+  }
 }
 
-void run_the_shell(){
-  char command_input[500];
+char** run_the_shell(){
+  char *command_input=malloc(100*sizeof(char));
   char ** cmd;//commands string
   char workingdir[500];//current working directory
-
   getcwd(workingdir,sizeof(workingdir));//(man getcwd for info) it gets current working directory
   printf("C-SHELL... %s $ ",workingdir);
   //user input part:
   fgets(command_input,sizeof(command_input),stdin);//(destination,bytes,file pointer)
-
-  //printf("[command_input] %s \n",command_input);
+  //fgets appends a new line to the end of the string, this gets rid of it. 
+  while(command_input){
+    if(command_input="\n"){
+      command_input=0;
+    }
+  }
   cmd= parse_args(command_input);
-  // return 0;
+  
+  return cmd;
 }
 
-/*main will call all other functions.
- * So it will print a shell line for inputs
- * and then call all the other functions that we end up writing. 
- */
 void main(){//void so it doesn't exit the program
-  
-  run_the_shell();
+  char** cmd=malloc(100*sizeof(char*));
+  cmd=run_the_shell();
+  int f=fork();
+  execute(cmd);
 }
-  
