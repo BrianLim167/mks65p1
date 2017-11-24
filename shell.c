@@ -10,7 +10,7 @@
 #include "headers.h"
 
 char ** parse_args(char* line){
-  char ** retans = malloc(100* sizeof(char*));
+  char ** retans = (char **) malloc(100* sizeof(char*));
   int i=0;
   while(line){
     retans[i]= strsep(&line," ");
@@ -22,17 +22,29 @@ char ** parse_args(char* line){
   return retans;
 }
 
+//general splitting function:
+char** split_line(char* line, char* character){
+  char ** retans=(char**) malloc(100*sizeof(char*));
+  int i=0;
+  char * input=malloc(100*sizeof(char));
+  input=line;
+  while(input){
+    retans[i]=strsep(&input,character);
+    i+=1;
+  }
+  return retans;
+}
 
-//idk if this works
+
 void execute(char** cmd){
   int f=fork();
   if(f==0){
-    printf("\nchild executing...\n");
+    // printf("\nchild executing...\n");
     execvp(cmd[0],cmd);
   }
   else{
     int status;
-    printf("waiting\n");
+    //printf("waiting\n");
     wait( &status );
   }
 }
@@ -43,33 +55,19 @@ char** parse_multiple_commands(char* line){
   char ** retans=malloc(100*sizeof(char*));
   int i=0;
   while(line){
-   retans= parse_args(strsep(&line,";"));
-   execute(retans);
+   retans[i]=strsep(&line,';');
    i++;
   }
-  /*
-    I think this should be moved to parse()
-
-    if (!fork()) execlp("clear", "clear", NULL);
-
-    char input[256];
-    char token[256]
-
-    scanf("%s", input);
-
-    while (token = strsep(&input, ";"));
-
-    return 0;
-  */
+  printf("i: %d\n",i);
+  return retans;
 }
+
 
 
 char** run_the_shell(){
   char *command_input=malloc(100*sizeof(char));
   char ** cmd;//commands string
-  char workingdir[500];//current working directory
-  getcwd(workingdir,sizeof(workingdir));//(man getcwd for info) it gets current working directory
-  printf("C-SHELL... %s $ ",workingdir);
+
   //user input part:
   fgets(command_input,sizeof(command_input),stdin);//(destination,bytes,file pointer)
   if(strcmp(command_input,"exit\n")==0){
@@ -79,20 +77,30 @@ char** run_the_shell(){
   //fgets appends a new line to the end of the string, this gets rid of it.
   char * newline_char;
   while( (newline_char = strstr(command_input,"\n")) ){
-    //printf("%s##",command_input);
     *newline_char=0;
-    //printf("%s##",command_input);
-  }
-  cmd= parse_multiple_commands(command_input);
 
+  }
+  cmd=split_line(command_input,";");
+  int x=0;
   return cmd;
 }
 
+void print_prompt(){
+  char workingdir[500];//current working directory
+  getcwd(workingdir,sizeof(workingdir));//(man getcwd for info) it gets current working directory
+  printf("C-SHELL... %s $ ",workingdir);
+}
 void main(){//void so it doesn't exit the program
   while(1){
+    print_prompt();
     char** cmd=malloc(100*sizeof(char*));
     cmd=run_the_shell();
-    //int f=fork();
-    execute(cmd);
+    int x=0;
+    while(cmd[x]){
+      printf("cmd[%d] in main: %s\n\n",x,cmd[x]);
+      execute(split_line(cmd[x]," "));
+      x++;
+    }
+
   }
 }
