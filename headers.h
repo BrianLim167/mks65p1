@@ -1,4 +1,4 @@
 char ** parse_args(char* line);
-
-int execute();
-void run_the_shell();
+void execute(char ** cmd);
+char** parse_multiple_commands(char* line);
+char ** run_the_shell();

@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "headers.h"
 
 char ** parse_args(char* line){
   char ** retans = malloc(100* sizeof(char*));
@@ -77,7 +78,7 @@ char** run_the_shell(){
   }
   //fgets appends a new line to the end of the string, this gets rid of it.
   char * newline_char;
-  while(newline_char = strstr(command_input,"\n")){
+  while( (newline_char = strstr(command_input,"\n")) ){
     //printf("%s##",command_input);
     *newline_char=0;
     //printf("%s##",command_input);
