@@ -18,13 +18,34 @@ char ** parse_args(char* line){
     printf("\n\n\n\n");
     i+=1;
   }
-
   return retans;
 }
 
 
-int parse(char* line){
+//idk if this works
+void execute(char** cmd){
+  int f=fork();
+  if(f==0){
+    printf("\nchild executing...\n");
+    execvp(cmd[0],cmd);
+  }
+  else{
+    int status;
+    printf("waiting\n");
+    wait( &status );
+  }
+}
 
+//not 100% done yet.
+char** parse_multiple_commands(char* line){
+
+  char ** retans=malloc(100*sizeof(char*));
+  int i=0;
+  while(line){
+   retans= parse_args(strsep(&line,";"));
+   execute(retans);
+   i++;
+  }
   /*
     I think this should be moved to parse()
 
@@ -39,22 +60,8 @@ int parse(char* line){
 
     return 0;
   */
+}
 
-  return 0;
-}
-//idk if this works
-void execute(char** cmd){
-  int f=fork();
-  if(f==0){
-    printf("\nchild executing...\n");
-    execvp(cmd[0],cmd);
-  }
-  else{
-    int status;
-    printf("waiting\n");
-    wait( &status );
-  }
-}
 
 char** run_the_shell(){
   char *command_input=malloc(100*sizeof(char));
@@ -75,7 +82,7 @@ char** run_the_shell(){
     *newline_char=0;
     //printf("%s##",command_input);
   }
-  cmd= parse_args(command_input);
+  cmd= parse_multiple_commands(command_input);
 
   return cmd;
 }
