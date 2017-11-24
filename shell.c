@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 char ** parse_args(char* line){
   char ** retans = malloc(100* sizeof(char*));
@@ -16,13 +18,13 @@ char ** parse_args(char* line){
     printf("\n\n\n\n");
     i+=1;
   }
-  
+
   return retans;
 }
 
 
 int parse(char* line){
-  
+
   /*
     I think this should be moved to parse()
 
@@ -48,8 +50,8 @@ void execute(char** cmd){
     execvp(cmd[0],cmd);
   }
   else{
-    int * status;
-    printf("waiting");
+    int status;
+    printf("waiting\n");
     wait( &status );
   }
 }
@@ -64,16 +66,17 @@ char** run_the_shell(){
   fgets(command_input,sizeof(command_input),stdin);//(destination,bytes,file pointer)
   if(strcmp(command_input,"exit\n")==0){
     printf("\nbyebye buddy\n");
-    exit(1);
+    exit(0);
   }
-  //fgets appends a new line to the end of the string, this gets rid of it. 
-  while(command_input){
-    if(command_input="\n"){
-      command_input=0;
-    }
+  //fgets appends a new line to the end of the string, this gets rid of it.
+  char * newline_char;
+  while(newline_char = strstr(command_input,"\n")){
+    //printf("%s##",command_input);
+    *newline_char=0;
+    //printf("%s##",command_input);
   }
   cmd= parse_args(command_input);
-  
+
   return cmd;
 }
 
