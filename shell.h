@@ -12,6 +12,7 @@ char ** parse_args(char* line, char ** retans);
 char ** split_line(char* line, char* character, char ** retans);
 void execute(char** parsed_line);
 char** parse_multiple_commands(char* line, char ** retans);
+void replace_str(char*line,char*substring,char*replace_with);
 char** run_the_shell(char ** cmd);
 void print_dir();
 void main();

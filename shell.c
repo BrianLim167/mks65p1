@@ -1,18 +1,5 @@
 #include "shell.h"
 
-/*
-char ** parse_args(char* line, char ** retans) {
-  int i=0;
-  while(line) {
-    retans[i]= strsep(&line," ");
-    printf("retans[%d]= %s\n",i,retans[i]);
-    printf("line:%s\n",line);
-    printf("\n\n\n\n");
-    i+=1;
-  }
-  return retans;
-}
-*/
 
 // changes retans to contain the tokens of line as determined by character
 char ** split_line(char* line, char* character, char ** retans) {
@@ -26,8 +13,19 @@ char ** split_line(char* line, char* character, char ** retans) {
   retans[i] = 0; // NULL termination
   return retans;
 }
-
-
+// this is for if the user types ls ; ls; ls ;ls (space differences)
+void replace_str(char* line, char* substring, char* replace_with){
+  char buffer[100];
+  char*p=line;
+  while((p=strstr(p,substring))){
+    strncpy(buffer, line, p-line);
+    buffer[p-line]='\0';
+    strcat(buffer,replace_with);
+    strcat(buffer,p+strlen(substring));
+    strcpy(line,buffer);
+    p++;
+  }
+}
 void execute(char **parsed_line) {
   //printf("@@%s\n", parsed_line[0]);
   int f = fork();
@@ -40,18 +38,16 @@ void execute(char **parsed_line) {
   }
 }
 
-// not 100% done yet.
-/*
-char** parse_multiple_commands(char* line, char ** retans) {
-  int i = 0;
-  while(line) {
-   retans[i]=strsep(&line,";");
-   i++;
-  }
-  printf("i: %d\n",i);
-  return retans;
+void cd(char* new_path){
+  char path[1000];
+  strcpy(path,new_path);
+  char cwd[256];
+  getcwd(cwd,sizeof(cwd));
+  strcat(cwd,path);
+  chdir(cwd);
+  print_dir();
 }
-*/
+
 
 char** run_the_shell(char ** cmd) {
   char command_input[256];
@@ -67,13 +63,16 @@ char** run_the_shell(char ** cmd) {
     printf("\nbyebye buddy\n");
     exit(0);
   }
-
+  replace_str(command_input," ; ",";");
+  replace_str(command_input,"; ",";");
+  replace_str(command_input," ;",";");
   split_line(command_input, ";", cmd);
   return cmd;
 }
 
-void print_dir() {
+void print_dir(char* cwd) {
   char workingdir[1024];
+  //strcat(workingdir,cwd);
   getcwd(workingdir,sizeof(workingdir)); //gets current working directory
   printf("C-SHELL %s $ ", workingdir);
 }
@@ -82,7 +81,9 @@ void main() {
   char *init[] = {"clear", NULL};
   execute(init);
   while(1) {
-    print_dir();
+    char* cwd;
+    getcwd(cwd,sizeof(cwd));
+    print_dir(cwd);
     char **cmd = (char **)calloc(256, sizeof(char *));
     run_the_shell(cmd);
     int i = 0;
