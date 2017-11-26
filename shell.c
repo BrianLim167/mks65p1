@@ -1,18 +1,5 @@
 #include "shell.h"
 
-/*
-char ** parse_args(char* line, char ** retans) {
-  int i=0;
-  while(line) {
-    retans[i]= strsep(&line," ");
-    printf("retans[%d]= %s\n",i,retans[i]);
-    printf("line:%s\n",line);
-    printf("\n\n\n\n");
-    i+=1;
-  }
-  return retans;
-}
-*/
 
 // changes retans to contain the tokens of line as determined by character
 char ** split_line(char* line, char* character, char* split_input, char ** retans) {
@@ -55,12 +42,12 @@ void execute(char **parsed_line) {
   }
 }
 
-
 void cd(char* new_path){
   char path[1024];
   strcpy(path,new_path);
   char cwd[256];
   getcwd(cwd,sizeof(cwd));
+  strcat(cwd,"/");
   strcat(cwd,path);
   chdir(cwd);
   print_dir();
@@ -75,11 +62,6 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
     *newline_char = 0;
   }
 
-  if (strcmp(command_input, "exit") == 0) {
-    printf("\nbyebye buddy\n");
-    exit(0);
-  }
-
   replace_str(command_input," ; ",";");
   replace_str(command_input,"; ",";");
   replace_str(command_input," ;",";");
@@ -87,7 +69,12 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   split_line(command_input, ";", split_input, cmd);
   return cmd;
 }
-
+void check_exit(char* token){
+if (strcmp(token, "exit") == 0) {
+    printf("\nbyebye buddy\n");
+    exit(0);
+  }
+}
 void print_dir() {
   char workingdir[1024];
   //strcat(workingdir,cwd);
@@ -120,7 +107,7 @@ void main() {
     int i = 0;
     while ( cmd[i] ) {
       printf("cmd[%d]:\t%s\n", i, cmd[i]);
-
+      check_exit(cmd[i]);
       // reset memory
       memset(split_command, 0, 256);
       memset(parsed_line, 0, 256);

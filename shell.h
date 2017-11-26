@@ -15,4 +15,5 @@ char** parse_multiple_commands(char* line, char ** retans);
 void replace_str(char*line,char*substring,char*replace_with);
 char** run_the_shell(char * command_input, char * input, char ** cmd);
 void print_dir();
+void check_exit(char* token);
 void main();
