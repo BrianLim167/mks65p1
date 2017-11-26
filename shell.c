@@ -26,6 +26,19 @@ char ** split_line(char* line, char* character, char* split_input, char ** retan
   return retans;
 }
 
+// this is for if the user types ls ; ls; ls ;ls (space differences)
+void replace_str(char* line, char* substring, char* replace_with){
+  char buffer[100];
+  char*p=line;
+  while((p=strstr(p,substring))){
+    strncpy(buffer, line, p-line);
+    buffer[p-line]='\0';
+    strcat(buffer,replace_with);
+    strcat(buffer,p+strlen(substring));
+    strcpy(line,buffer);
+    p++;
+  }
+}
 
 void execute(char **parsed_line) {
   //printf("@@%s\n", parsed_line[0]);
@@ -42,18 +55,16 @@ void execute(char **parsed_line) {
   }
 }
 
-// not 100% done yet.
-/*
-char** parse_multiple_commands(char* line, char ** retans) {
-  int i = 0;
-  while(line) {
-   retans[i]=strsep(&line,";");
-   i++;
-  }
-  printf("i: %d\n",i);
-  return retans;
+
+void cd(char* new_path){
+  char path[1024];
+  strcpy(path,new_path);
+  char cwd[256];
+  getcwd(cwd,sizeof(cwd));
+  strcat(cwd,path);
+  chdir(cwd);
+  print_dir();
 }
-*/
 
 char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   fgets(command_input, 256, stdin);
@@ -69,12 +80,17 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
     exit(0);
   }
 
+  replace_str(command_input," ; ",";");
+  replace_str(command_input,"; ",";");
+  replace_str(command_input," ;",";");
+
   split_line(command_input, ";", split_input, cmd);
   return cmd;
 }
 
 void print_dir() {
   char workingdir[1024];
+  //strcat(workingdir,cwd);
   getcwd(workingdir,sizeof(workingdir)); //gets current working directory
   printf("C-SHELL %s $ ", workingdir);
 }
