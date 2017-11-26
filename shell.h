@@ -9,9 +9,9 @@
 #include <sys/wait.h>
 
 char ** parse_args(char* line, char ** retans);
-char ** split_line(char* line, char* character, char ** retans);
+char ** split_line(char* line, char* character, char* split_input, char ** retans);
 void execute(char** parsed_line);
 char** parse_multiple_commands(char* line, char ** retans);
-char** run_the_shell(char ** cmd);
+char** run_the_shell(char * command_input, char * input, char ** cmd);
 void print_dir();
 void main();

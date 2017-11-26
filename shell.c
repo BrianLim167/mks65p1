@@ -15,15 +15,14 @@ char ** parse_args(char* line, char ** retans) {
 */
 
 // changes retans to contain the tokens of line as determined by character
-char ** split_line(char* line, char* character, char ** retans) {
+char ** split_line(char* line, char* character, char* split_input, char ** retans) {
   int i=0;
-  char input[256];
-  strcpy(input,line);
-  char *input_pointer = input;
+  strcpy(split_input,line);
+  char *input_pointer = split_input;
   while (retans[i] = strsep(&input_pointer, character)) {
     i++;
   }
-  retans[i] = 0; // NULL termination
+  //retans[i] = 0; // NULL termination
   return retans;
 }
 
@@ -32,7 +31,10 @@ void execute(char **parsed_line) {
   //printf("@@%s\n", parsed_line[0]);
   int f = fork();
   if (f) {
-    //if (parsed_line[0] == "cd") chdir(parsed_line[1]);
+    //if (strcmp(parsed_line[0], "cd") == 0) {
+      //chdir(parsed_line[1]);
+      //printf("%d:%s", errno, strerror(errno));
+    //}
     int status;
     wait( &status );
   } else {
@@ -53,9 +55,8 @@ char** parse_multiple_commands(char* line, char ** retans) {
 }
 */
 
-char** run_the_shell(char ** cmd) {
-  char command_input[256];
-  fgets(command_input, sizeof(command_input), stdin);
+char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
+  fgets(command_input, 256, stdin);
 
   // fgets appends a new line to the end of the string, this gets rid of it.
   char * newline_char;
@@ -68,7 +69,7 @@ char** run_the_shell(char ** cmd) {
     exit(0);
   }
 
-  split_line(command_input, ";", cmd);
+  split_line(command_input, ";", split_input, cmd);
   return cmd;
 }
 
@@ -79,23 +80,43 @@ void print_dir() {
 }
 
 void main() {
+  char command_input[256]; // user input string
+  char split_cmd[256];     // input string, but with NULLs instead of semicolons
+  char *cmd[256];          // array of strings from split_cmd
+
+  char split_command[256]; // single command string from cmd
+  char *parsed_line[256];  // command string, but with NULLS instead of spaces
+
   char *init[] = {"clear", NULL};
   execute(init);
+
   while(1) {
     print_dir();
-    char **cmd = (char **)calloc(256, sizeof(char *));
-    run_the_shell(cmd);
+
+    // reset memory
+    memset(command_input, 0, 256);
+    memset(split_cmd, 0, 256);
+    memset(cmd, 0, 256);
+
+    // make split_cmd and cmd based on the contents of command_input
+    run_the_shell(command_input, split_cmd, cmd);
+
     int i = 0;
-    while( cmd[i] ) {
+    while ( cmd[i] ) {
       printf("cmd[%d]:\t%s\n", i, cmd[i]);
-      char **parsed_line = (char **)calloc(256, sizeof(char *));
-      split_line(cmd[i], " ", parsed_line);
+
+      // reset memory
+      memset(split_command, 0, 256);
+      memset(parsed_line, 0, 256);
+
+      // make split_command and parsed_line based on contents of cmd[i]
+      split_line(cmd[i], " ", split_command, parsed_line);
       printf("@%s\n", parsed_line[0]);
+
       execute(parsed_line);
-      free(parsed_line);
       printf("\n--------------------------------\n");
+
       i++;
     }
-    free(cmd);
   }
 }
