@@ -1,7 +1,12 @@
 #include "shell.h"
 
-
-// changes retans to contain the tokens of line as determined by character
+/**
+ * @Function: split_line
+ * @Params: char* line, char * character,char* split_input, char** retans
+ * @Returns: char**
+ * @Explanation: splits the line at the character
+ */
+////////Why do we need split_input and retans in the signature???/////
 char ** split_line(char* line, char* character, char* split_input, char ** retans) {
   int i=0;
   strcpy(split_input,line);
@@ -13,7 +18,13 @@ char ** split_line(char* line, char* character, char* split_input, char ** retan
   return retans;
 }
 
-// this is for if the user types ls ; ls; ls ;ls (space differences)
+
+/**
+ * @Function: replace_str
+ * @Params: char* line, char* substring, char* replace_with
+ * @Returns: Nothing
+ * @Explanation: replaces the substring with replace_with. Used for if user surrounds semicolon with spaces.
+ */
 void replace_str(char* line, char* substring, char* replace_with){
   char buffer[100];
   char*p=line;
@@ -27,14 +38,16 @@ void replace_str(char* line, char* substring, char* replace_with){
   }
 }
 
+/**
+ * @Function: execute
+ * @Params: char** parsed_line
+ * @Returns: Nothing
+ * @Explanation: forks, parent waits for child to execute parsed_line
+ */
 void execute(char **parsed_line) {
   //printf("@@%s\n", parsed_line[0]);
   int f = fork();
   if (f) {
-    //if (strcmp(parsed_line[0], "cd") == 0) {
-      //chdir(parsed_line[1]);
-      //printf("%d:%s", errno, strerror(errno));
-    //}
     int status;
     wait( &status );
   } else {
@@ -42,22 +55,37 @@ void execute(char **parsed_line) {
   }
 }
 
+/**
+ * @Function: cd
+ * @Params: char ** parsed_line
+ * @Returns: nothing
+ * @Explanation: change directory function, includes cd with no param and cd ~ as well
+ */
 void cd(char** parsed_line){
 
   if(strcmp(parsed_line[0],"cd") == 0){
     // printf("\n\nparsed_line[0]: %s\n",parsed_line[0]);
     // printf("\nparsed_line[1]: %s\n",parsed_line[1]);
+    if( strcmp(parsed_line[1],"~")==0){
+      chdir(getenv("HOME"));
+    }
     if(parsed_line[1]){
       chdir(parsed_line[1]);
     }
     else{
       chdir(getenv("HOME"));
     }
+    // char path[256];
+    //strcpy(path, strchr(parsed_line[1],"~")+1);
   }
 }
 
-
-
+/**
+ * @Function: run_the_shell
+ * @Params: char* command_input, char* split_input, char** cmd
+ * @Returns: char **
+ * @Explanation: gets user input and uses replace_Str and split_line to populate cmd
+ */
 char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   fgets(command_input, 256, stdin);
 
@@ -74,12 +102,26 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   split_line(command_input, ";", split_input, cmd);
   return cmd;
 }
+
+/**
+ * @Function: check_exit
+ * @Params: char * token
+ * @Returns: Nothing
+ * @Explanation: if the token is "exit" exit the program
+ */
 void check_exit(char* token){
-if (strcmp(token, "exit") == 0) {
+  if(strcmp(token, "exit") == 0) {
     printf("\nbyebye buddy\n");
     exit(0);
   }
 }
+
+/**
+ * @Function: print_dir
+ * @Params: None
+ * @Returns: None
+ * @Explanation: Prints the prompt using current working directory
+ */
 void print_dir() {
   char workingdir[1024];
   //strcat(workingdir,cwd);
@@ -87,7 +129,15 @@ void print_dir() {
   printf("C-SHELL %s $ ", workingdir);
 }
 
-void main() {
+//copy this for future functions:
+
+/**
+ * @Function:
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
+int main() {
   char command_input[256]; // user input string
   char split_cmd[256];     // input string, but with NULLs instead of semicolons
   char *cmd[256];          // array of strings from split_cmd
@@ -114,7 +164,6 @@ void main() {
       printf("cmd[%d]:\t%s\n", i, cmd[i]);
       check_exit(cmd[i]);
 
-
       // reset memory
       memset(split_command, 0, 256);
       memset(parsed_line, 0, 256);
@@ -130,4 +179,5 @@ void main() {
       i++;
     }
   }
+  return 0;
 }

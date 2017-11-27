@@ -23,4 +23,4 @@ void check_exit(char* token);
 
 void print_dir();
 
-void main();
+int main();
