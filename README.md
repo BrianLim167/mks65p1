@@ -4,10 +4,12 @@
 ### Features
 * Forks and executes commands
 * Parses multiple commands on one line
-*
+* cd implementation
+
 ### Attempted
 
 ### Bugs
+
 
 ### Files & Function Headers
 ##### Shell.c
