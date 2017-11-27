@@ -4,7 +4,7 @@
  * @Function: split_line
  * @Params: char* line, char * character,char* split_input, char** retans
  * @Returns: char**
- * @Explanation: splits the line at the character
+ * @Explanation: splits the line at the character. If multiple occurrences each will be a token in retans.
  */
 ////////Why do we need split_input and retans in the signature???/////
 char ** split_line(char* line, char* character, char* split_input, char ** retans) {
@@ -84,12 +84,10 @@ void cd(char** parsed_line){
  * @Function: run_the_shell
  * @Params: char* command_input, char* split_input, char** cmd
  * @Returns: char **
- * @Explanation: gets user input and uses replace_Str and split_line to populate cmd
+ * @Explanation: gets user input, replaces "\n" with 0 after fgets, and uses replace_Str and split_line to populate cmd.
  */
 char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   fgets(command_input, 256, stdin);
-
-  // fgets appends a new line to the end of the string, this gets rid of it.
   char * newline_char;
   while( (newline_char = strstr(command_input, "\n")) ) {
     *newline_char = 0;
@@ -102,6 +100,8 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   split_line(command_input, ";", split_input, cmd);
   return cmd;
 }
+
+//BUGGY: if you cd somewhere and then exit it doesn't work, u have to exit a bunch of times.
 
 /**
  * @Function: check_exit
@@ -128,6 +128,7 @@ void print_dir() {
   getcwd(workingdir,sizeof(workingdir)); //gets current working directory
   printf("C-SHELL %s $ ", workingdir);
 }
+
 
 //copy this for future functions:
 
