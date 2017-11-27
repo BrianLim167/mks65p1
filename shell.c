@@ -42,16 +42,21 @@ void execute(char **parsed_line) {
   }
 }
 
-void cd(char* new_path){
-  char path[1024];
-  strcpy(path,new_path);
-  char cwd[256];
-  getcwd(cwd,sizeof(cwd));
-  strcat(cwd,"/");
-  strcat(cwd,path);
-  chdir(cwd);
-  print_dir();
+void cd(char** parsed_line){
+
+  if(strcmp(parsed_line[0],"cd") == 0){
+    // printf("\n\nparsed_line[0]: %s\n",parsed_line[0]);
+    // printf("\nparsed_line[1]: %s\n",parsed_line[1]);
+    if(parsed_line[1]){
+      chdir(parsed_line[1]);
+    }
+    else{
+      chdir(getenv("HOME"));
+    }
+  }
 }
+
+
 
 char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   fgets(command_input, 256, stdin);
@@ -108,6 +113,8 @@ void main() {
     while ( cmd[i] ) {
       printf("cmd[%d]:\t%s\n", i, cmd[i]);
       check_exit(cmd[i]);
+
+
       // reset memory
       memset(split_command, 0, 256);
       memset(parsed_line, 0, 256);
@@ -115,6 +122,7 @@ void main() {
       // make split_command and parsed_line based on contents of cmd[i]
       split_line(cmd[i], " ", split_command, parsed_line);
       printf("@%s\n", parsed_line[0]);
+      cd(parsed_line);
 
       execute(parsed_line);
       printf("\n--------------------------------\n");
