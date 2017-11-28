@@ -11,7 +11,7 @@ char ** split_line(char* line, char* character, char* split_input, char ** retan
   int i=0;
   strcpy(split_input,line);
   char *input_pointer = split_input;
-  while (retans[i] = strsep(&input_pointer, character)) {
+  while(retans[i] = strsep(&input_pointer, character)) {
     i++;
   }
   //retans[i] = 0; // NULL termination
@@ -52,6 +52,7 @@ void execute(char **parsed_line) {
     wait( &status );
   } else {
     execvp(parsed_line[0], parsed_line);
+    exit(0);
   }
 }
 
@@ -61,13 +62,12 @@ void execute(char **parsed_line) {
  * @Returns: nothing
  * @Explanation: change directory function, includes cd with no param and cd ~ as well
  */
-void cd(char** parsed_line){
-
-  if(strcmp(parsed_line[0],"cd") == 0){
+ void cd(char** parsed_line){
+   if(strcmp(parsed_line[0],"cd") == 0){
     // printf("\n\nparsed_line[0]: %s\n",parsed_line[0]);
     // printf("\nparsed_line[1]: %s\n",parsed_line[1]);
     if( strcmp(parsed_line[1],"~")==0){
-      chdir(getenv("HOME"));
+        chdir(getenv("HOME"));
     }
     if(parsed_line[1]){
       chdir(parsed_line[1]);
@@ -77,8 +77,9 @@ void cd(char** parsed_line){
     }
     // char path[256];
     //strcpy(path, strchr(parsed_line[1],"~")+1);
-  }
+    }
 }
+
 
 /**
  * @Function: run_the_shell
@@ -110,7 +111,7 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
  * @Explanation: if the token is "exit" exit the program
  */
 void check_exit(char* token){
-  if(strcmp(token, "exit") == 0) {
+  if(!strcmp(token, "exit")) {
     printf("\nbyebye buddy\n");
     exit(0);
   }
@@ -163,7 +164,7 @@ int main() {
     int i = 0;
     while ( cmd[i] ) {
       printf("cmd[%d]:\t%s\n", i, cmd[i]);
-      check_exit(cmd[i]);
+
 
       // reset memory
       memset(split_command, 0, 256);
@@ -172,7 +173,9 @@ int main() {
       // make split_command and parsed_line based on contents of cmd[i]
       split_line(cmd[i], " ", split_command, parsed_line);
       printf("@%s\n", parsed_line[0]);
+
       cd(parsed_line);
+      check_exit(cmd[i]);
 
       execute(parsed_line);
       printf("\n--------------------------------\n");
