@@ -1,11 +1,11 @@
 #include "shell.h"
 
 /**
-* @Function: split_line
-* @Params: char* line, char * character,char* split_input, char** retans
-* @Returns: char**
-* @Explanation: splits the line at the character. If multiple occurrences each will be a token in retans.
-*/
+ * @Function: split_line
+ * @Params: char* line, char * character,char* split_input, char** retans
+ * @Returns: char**
+ * @Explanation: splits the line at the character. If multiple occurrences each will be a token in retans.
+ */
 
 char ** split_line(char* line, char* character, char* split_input, char ** retans) {
   int i=0;
@@ -20,11 +20,11 @@ char ** split_line(char* line, char* character, char* split_input, char ** retan
 
 
 /**
-* @Function: replace_str
-* @Params: char* line, char* substring, char* replace_with
-* @Returns: Nothing
-* @Explanation: replaces the substring with replace_with. Used for if user surrounds semicolon with spaces.
-*/
+ * @Function: replace_str
+ * @Params: char* line, char* substring, char* replace_with
+ * @Returns: Nothing
+ * @Explanation: replaces the substring with replace_with. Used for if user surrounds semicolon with spaces.
+ */
 void replace_str(char* line, char* substring, char* replace_with){
   char buffer[100];
   char*p=line;
@@ -39,11 +39,11 @@ void replace_str(char* line, char* substring, char* replace_with){
 }
 
 /**
-* @Function: execute
-* @Params: char** parsed_line
-* @Returns: Nothing
-* @Explanation: forks, parent waits for child to execute parsed_line
-*/
+ * @Function: execute
+ * @Params: char** parsed_line
+ * @Returns: Nothing
+ * @Explanation: forks, parent waits for child to execute parsed_line
+ */
 void execute(char **parsed_line) {
   //printf("@@%s\n", parsed_line[0]);
   int f = fork();
@@ -58,11 +58,11 @@ void execute(char **parsed_line) {
 }
 
 /**
-* @Function: cd
-* @Params: char ** parsed_line
-* @Returns: nothing
-* @Explanation: change directory function, includes cd with no param and cd ~ as well
-*/
+ * @Function: cd
+ * @Params: char ** parsed_line
+ * @Returns: nothing
+ * @Explanation: change directory function, includes cd with no param and cd ~ as well
+ */
 void cd(char** parsed_line){
   if(strcmp(parsed_line[0],"cd") == 0){
     // printf("\n\nparsed_line[0]: %s\n",parsed_line[0]);
@@ -83,11 +83,11 @@ void cd(char** parsed_line){
 
 
 /**
-* @Function: run_the_shell
-* @Params: char* command_input, char* split_input, char** cmd
-* @Returns: char **
-* @Explanation: gets user input, replaces "\n" with 0 after fgets, and uses replace_Str and split_line to populate cmd.
-*/
+ * @Function: run_the_shell
+ * @Params: char* command_input, char* split_input, char** cmd
+ * @Returns: char **
+ * @Explanation: gets user input, replaces "\n" with 0 after fgets, and uses replace_Str and split_line to populate cmd.
+ */
 char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   fgets(command_input, 256, stdin);
   char * newline_char;
@@ -105,11 +105,11 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
 
 
 /**
-* @Function: check_exit
-* @Params: char * token
-* @Returns: Nothing
-* @Explanation: if the token is "exit" exit the program
-*/
+ * @Function: check_exit
+ * @Params: char * token
+ * @Returns: Nothing
+ * @Explanation: if the token is "exit" exit the program
+ */
 void check_exit(char* token){
   if(!strcmp(token, "exit")) {
     printf("\nbyebye buddy\n");
@@ -118,11 +118,11 @@ void check_exit(char* token){
 }
 
 /**
-* @Function: print_dir
-* @Params: None
-* @Returns: None
-* @Explanation: Prints the prompt using current working directory
-*/
+ * @Function: print_dir
+ * @Params: None
+ * @Returns: None
+ * @Explanation: Prints the prompt using current working directory
+ */
 void print_dir() {
   char workingdir[1024];
   //strcat(workingdir,cwd);
@@ -131,11 +131,11 @@ void print_dir() {
 }
 
 /**
-* @Function: locate_redirect
-* @Params:
-* @Returns:
-* @Explanation:
-*/
+ * @Function: locate_redirect
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
 int locate_redirect(char ** parsed_line ){
   int red_index=0;
   while(parsed_line[red_index]){
@@ -148,11 +148,11 @@ int locate_redirect(char ** parsed_line ){
 }
 
 /**
-* @Function: redirect
-* @Params:
-* @Returns:
-* @Explanation:
-*/
+ * @Function: redirect
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
 void redirect(char **parsed_line){
   int redirection= locate_redirect(parsed_line);
   if(redirection){
@@ -169,7 +169,7 @@ void redirect(char **parsed_line){
 
       if(!f){
         red=parsed_line[(redirection+1)];
-        newfr=open(red,O_RDONLY);
+        newfr=open(red, O_CREAT | O_RDONLY, 0644);
         currfr=dup(0);
         dup2(newfr,0);
         int i = redirection;
@@ -190,7 +190,7 @@ void redirect(char **parsed_line){
       f=fork();
       if(!f){
         red=parsed_line[redirection+1];
-        newfw=open(red,O_CREAT|O_WRONLY);
+        newfw=open(red,O_CREAT|O_WRONLY,0644);
         currfw=dup(1);
         dup2(newfw,1);
         int i = redirection;
@@ -199,9 +199,12 @@ void redirect(char **parsed_line){
           i++;
         }
         //if (!fork()) execvp(parsed_line[0],parsed_line);
+	//dup2(,currfw);
 	execute(parsed_line);
-        dup2(1,currfw);
+	
+	dup2(STDOUT_FILENO,currfw);
         close(newfw);
+	exit(0);
       }
     }
     else{
@@ -248,11 +251,11 @@ void redirect(char **parsed_line){
 //copy this for future functions:
 
 /**
-* @Function:
-* @Params:
-* @Returns:
-* @Explanation:
-*/
+ * @Function:
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
 int main() {
   char command_input[256]; // user input string
   char split_cmd[256];     // input string, but with NULLs instead of semicolons
@@ -290,9 +293,14 @@ int main() {
 
       cd(parsed_line);
       check_exit(cmd[i]);
-      if (locate_redirect(parsed_line)) redirect(parsed_line);
-      else execute(parsed_line);
-      print_dir();
+      if (locate_redirect(parsed_line)){
+	redirect(parsed_line);
+	print_dir();
+      }
+      else{
+	execute(parsed_line);
+      }
+      //print_dir();
       printf("\n--------------------------------\n");
 
       i++;
