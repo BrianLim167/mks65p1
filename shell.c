@@ -6,7 +6,7 @@
  * @Returns: char**
  * @Explanation: splits the line at the character. If multiple occurrences each will be a token in retans.
  */
-////////Why do we need split_input and retans in the signature???/////
+
 char ** split_line(char* line, char* character, char* split_input, char ** retans) {
   int i=0;
   strcpy(split_input,line);
@@ -50,7 +50,8 @@ void execute(char **parsed_line) {
   if (f) {
     int status;
     wait( &status );
-  } else {
+  }
+  else {
     execvp(parsed_line[0], parsed_line);
     exit(0);
   }
@@ -62,12 +63,12 @@ void execute(char **parsed_line) {
  * @Returns: nothing
  * @Explanation: change directory function, includes cd with no param and cd ~ as well
  */
- void cd(char** parsed_line){
-   if(strcmp(parsed_line[0],"cd") == 0){
+void cd(char** parsed_line){
+  if(strcmp(parsed_line[0],"cd") == 0){
     // printf("\n\nparsed_line[0]: %s\n",parsed_line[0]);
     // printf("\nparsed_line[1]: %s\n",parsed_line[1]);
     if( strcmp(parsed_line[1],"~")==0){
-        chdir(getenv("HOME"));
+      chdir(getenv("HOME"));
     }
     if(parsed_line[1]){
       chdir(parsed_line[1]);
@@ -77,7 +78,7 @@ void execute(char **parsed_line) {
     }
     // char path[256];
     //strcpy(path, strchr(parsed_line[1],"~")+1);
-    }
+  }
 }
 
 
@@ -102,7 +103,6 @@ char** run_the_shell(char *command_input, char *split_input, char ** cmd) {
   return cmd;
 }
 
-//BUGGY: if you cd somewhere and then exit it doesn't work, u have to exit a bunch of times.
 
 /**
  * @Function: check_exit
@@ -130,7 +130,67 @@ void print_dir() {
   printf("C-SHELL %s $ ", workingdir);
 }
 
+/**
+ * @Function: locate_redirect
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
+int locate_redirect(char * cmd[] ){
+  int red_index=0;
+  while(cmd[red_index]){
+    if (!strcmp(cmd[red_index],">") || !strcmp(cmd[red_index],"<") || !strcmp(cmd[red_index],"|")){
+      return red_index;
+    }
+    red_index++;
+  }
+  return 0;// used as false later
+}
 
+/**
+ * @Function: redirect
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
+void redirect(char* cmd[]){
+  int redirection= locate_redirect(cmd);
+  if(redirection){
+    char* red= cmd[redirection];
+    int f;
+    int newf;
+    int currf;
+    if(!strcmp(red,"<")){
+      f=fork();
+
+      if(!f){
+        red=cmd[(redirection+1)];
+        newf=open(red,O_RDONLY);
+        currf=dup(0);
+        dup2(newf,0);
+        cmd[redirection]=0;
+        execvp(cmd[0],cmd);
+        dup2(currf,0);
+        close(newf);
+      }
+
+    }
+    else if(!strcmp(red,">")){
+      f=fork();
+      if(!f){
+        red=cmd[redirection+1];
+        newf=open(red,O_CREAT|O_WRONLY);
+        currf=dup(1);
+        dup2(newf,1);
+        cmd[redirection]=0;
+        execvp(cmd[0],cmd);
+      }
+    }
+    else{
+      //TODO
+    }
+  }
+}
 //copy this for future functions:
 
 /**
@@ -176,7 +236,7 @@ int main() {
 
       cd(parsed_line);
       check_exit(cmd[i]);
-
+      redirect(parsed_line);
       execute(parsed_line);
       printf("\n--------------------------------\n");
 
