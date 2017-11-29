@@ -23,6 +23,8 @@ void check_exit(char* token);
 
 void print_dir();
 
-int locate_redirect(char * cmd[] );
+int locate_redirect(char **parsed_line );
+
+void redirect(char **parsed_line);
 
 int main();
