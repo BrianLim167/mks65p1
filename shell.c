@@ -173,20 +173,18 @@ void redirect(char **parsed_line){
         currfr=dup(0);
         dup2(newfr,0);
         int i = redirection;
-	print_dir();
 	printf("@%s\n",parsed_line[i]);
         while (parsed_line[i]) { // zero out everything except the command
           parsed_line[i] = 0;
           i++;
 	}
-        //if (!fork()) execvp(parsed_line[0],parsed_line);
 	execute(parsed_line);
         dup2(currfr,0);
         close(newfr);
       } 
 
     }
-    else if(!strcmp(red,">")){
+    if(!strcmp(red,">")){
       f=fork();
       if(!f){
         red=parsed_line[redirection+1];
@@ -198,52 +196,62 @@ void redirect(char **parsed_line){
           parsed_line[i] = 0;
           i++;
         }
-        //if (!fork()) execvp(parsed_line[0],parsed_line);
-	//dup2(,currfw);
-	execute(parsed_line);
-	
+	int fo = fork();
+	if (!fo){
+	  execvp(parsed_line[0],parsed_line);
+	}else{
+	  int status;
+	  wait(&status);
+	}
+	//execute(parsed_line);
 	dup2(STDOUT_FILENO,currfw);
-        close(newfw);
-	exit(0);
+	close(newfw);
+	exit(0);     
       }
+      else{
+	int status;
+	wait(&status);
+      }
+      
+      //}
     }
     else{
       f=fork();
       if(!f){
-        char *command0[256];
-        char *command1[256];
-        memset(command0, 0, 256);
-        memset(command1, 0, 256);
-        red=parsed_line[redirection+1];
-        newsr = popen(red,"r");
-        newsw = popen(parsed_line[0],"w");
-        newfr = fileno(newsr);
-        newfw = fileno(newsw);
-        currfr = dup(0);
-        currfw = dup(1);
-        dup2(0,newfr);
-        dup2(1,newfw);
-        int i = 0;
-        while (!strcmp(parsed_line[i], "|")) { // command0 is everything before |
-          command0[i] = parsed_line[i];
-          i++;
-        }
-        i++;
-        int shift = i;
-        while (parsed_line[i]) { // command1 is everything after |
-          command1[i-shift] = parsed_line[i];
-          i++;
-        }
-        //if (!fork()) execvp(command1[0],command1);
-        //if (!fork()) execvp(command0[0],command0);
+	char *command0[256];
+	char *command1[256];
+	memset(command0, 0, 256);
+	memset(command1, 0, 256);
+	red=parsed_line[redirection+1];
+	newsr = popen(red,"r");
+	newsw = popen(parsed_line[0],"w");
+	newfr = fileno(newsr);
+	newfw = fileno(newsw);
+	currfr = dup(0);
+	currfw = dup(1);
+	dup2(0,newfr);
+	dup2(1,newfw);
+	int i = 0;
+	while (!strcmp(parsed_line[i], "|")) { // command0 is everything before |
+	  command0[i] = parsed_line[i];
+	  i++;
+	}
+	i++;
+	int shift = i;
+	while (parsed_line[i]) { // command1 is everything after |
+	  command1[i-shift] = parsed_line[i];
+	  i++;
+	}
+	//if (!fork()) execvp(command1[0],command1);
+	//if (!fork()) execvp(command0[0],command0);
 	execute(command0);
 	execute(command1);
-        dup2(currfr,0);
-        dup2(currfw,1);
-        close(newfr);
-        close(newfw);
-        pclose(newsr);
-        pclose(newsw);
+	dup2(currfr,0);
+	dup2(currfw,1);
+	close(newfr);
+	close(newfw);
+	pclose(newsr);
+	pclose(newsw);
       }
     }
   }
@@ -295,7 +303,7 @@ int main() {
       check_exit(cmd[i]);
       if (locate_redirect(parsed_line)){
 	redirect(parsed_line);
-	print_dir();
+	//print_dir();
       }
       else{
 	execute(parsed_line);
