@@ -166,36 +166,68 @@ void redirect(char **parsed_line){
     int currfw;
     if(!strcmp(red,"<")){
       f=fork();
-
-      if(!f){
-        red=parsed_line[(redirection+1)];
-        newfr=open(red, O_CREAT | O_RDONLY, 0644);
-        currfr=dup(0);
-        dup2(newfr,0);
-        int i = redirection;
-	printf("@%s\n",parsed_line[i]);
-        while (parsed_line[i]) { // zero out everything except the command
-          parsed_line[i] = 0;
-          i++;
-	}
-	execute(parsed_line);
-        dup2(currfr,0);
-        close(newfr);
-      } 
-
-    }
-    if(!strcmp(red,">")){
-      f=fork();
       if(!f){
         red=parsed_line[redirection+1];
-        newfw=open(red,O_CREAT|O_WRONLY,0644);
-        currfw=dup(1);
-        dup2(newfw,1);
+        newfr=open(red,O_CREAT|O_RDONLY,0644);
+        currfr=dup(0);
+        dup2(newfr,0);
         int i = redirection;
         while (parsed_line[i]) { // zero out everything except the command
           parsed_line[i] = 0;
           i++;
         }
+	int fo = fork();
+	if (!fo){
+	  execvp(parsed_line[0],parsed_line);
+	}else{
+	  int status;
+	  wait(&status);
+	}
+	//execute(parsed_line);
+	dup2(STDIN_FILENO,currfr);
+	close(newfr);
+	exit(0);     
+      }
+      else{
+	int status;
+	wait(&status);
+      }
+    }
+    /* if(!f){
+       red=parsed_line[(redirection+1)];
+       newfr=open(red, O_CREAT | O_RDONLY, 0644);
+       currfr=dup(0);
+       dup2(newfr,0);
+       int i = redirection;
+       printf("@%s\n",parsed_line[i]);
+       while (parsed_line[i]) { // zero out everything except the command
+       parsed_line[i] = 0;
+       i++;
+       }
+       int fo = fork();
+       if (!fo){
+       execvp(parsed_line[0],parsed_line);
+       }else{
+       int status;
+       wait(&status);
+       }
+       //execute(parsed_line);
+       dup2(currfr,0);
+       close(newfr);
+       } */
+  
+    else if(!strcmp(red,">")){
+      f=fork();
+      if(!f){
+	red=parsed_line[redirection+1];
+	newfw=open(red,O_CREAT|O_WRONLY,0644);
+	currfw=dup(1);
+	dup2(newfw,1);
+	int i = redirection;
+	while (parsed_line[i]) { // zero out everything except the command
+	  parsed_line[i] = 0;
+	  i++;
+	}
 	int fo = fork();
 	if (!fo){
 	  execvp(parsed_line[0],parsed_line);
@@ -242,16 +274,29 @@ void redirect(char **parsed_line){
 	  command1[i-shift] = parsed_line[i];
 	  i++;
 	}
-	//if (!fork()) execvp(command1[0],command1);
-	//if (!fork()) execvp(command0[0],command0);
-	execute(command0);
-	execute(command1);
+	if (!fork()) {
+	  execvp(command1[0],command1);
+	} else {
+	  int status;
+	  wait(&status);
+	}
+	if (!fork()){
+	  execvp(command0[0],command0);
+	}
+	else {
+	  int status;
+	  wait(&status);
+	}
 	dup2(currfr,0);
 	dup2(currfw,1);
 	close(newfr);
 	close(newfw);
 	pclose(newsr);
 	pclose(newsw);
+      }
+      else {
+	int status;
+	wait(&status);
       }
     }
   }
