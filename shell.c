@@ -65,8 +65,6 @@ void execute(char **parsed_line) {
  */
 void cd(char** parsed_line){
   if(strcmp(parsed_line[0],"cd") == 0){
-    // printf("\n\nparsed_line[0]: %s\n",parsed_line[0]);
-    // printf("\nparsed_line[1]: %s\n",parsed_line[1]);
     if( strcmp(parsed_line[1],"~")==0){
       chdir(getenv("HOME"));
     }
@@ -76,8 +74,6 @@ void cd(char** parsed_line){
     else{
       chdir(getenv("HOME"));
     }
-    // char path[256];
-    //strcpy(path, strchr(parsed_line[1],"~")+1);
   }
 }
 
@@ -125,7 +121,6 @@ void check_exit(char* token){
  */
 void print_dir() {
   char workingdir[1024];
-  //strcat(workingdir,cwd);
   getcwd(workingdir,sizeof(workingdir)); //gets current working directory
   printf("C-SHELL %s $ ", workingdir);
 }
@@ -193,29 +188,6 @@ void redirect(char **parsed_line){
 	wait(&status);
       }
     }
-    /* if(!f){
-       red=parsed_line[(redirection+1)];
-       newfr=open(red, O_CREAT | O_RDONLY, 0644);
-       currfr=dup(0);
-       dup2(newfr,0);
-       int i = redirection;
-       printf("@%s\n",parsed_line[i]);
-       while (parsed_line[i]) { // zero out everything except the command
-       parsed_line[i] = 0;
-       i++;
-       }
-       int fo = fork();
-       if (!fo){
-       execvp(parsed_line[0],parsed_line);
-       }else{
-       int status;
-       wait(&status);
-       }
-       //execute(parsed_line);
-       dup2(currfr,0);
-       close(newfr);
-       } */
-  
     else if(!strcmp(red,">")){
       f=fork();
       if(!f){
@@ -244,8 +216,6 @@ void redirect(char **parsed_line){
 	int status;
 	wait(&status);
       }
-      
-      //}
     }
     else{
       f=fork();
