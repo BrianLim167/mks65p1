@@ -141,7 +141,36 @@ int locate_redirect(char ** parsed_line ){
   }
   return 0;// used as false later
 }
+/**
+ * @Function: zero
+ * @Params: char ** parsed_line, int redirection
+ * @Returns: void
+ * @Explanation:This function zeros out everything except for the command in parsed_line
+ */
 
+void zero(char** parsed_line, int redirection){
+  int i = redirection;
+  while (parsed_line[i]) { // zero out everything except the command
+    parsed_line[i] = 0;
+    i++;
+  }
+}
+
+/**
+ * @Function: exec
+ * @Params: int forked, char ** parsed_line
+ * @Returns: None
+ * @Explanation: This is super similar to execute except it's takes an int as a parameter so that we can implement modular design and make our functions shorter. 
+ */
+
+void exec(int forked, char** parsed_line){
+  if (!forked){
+    execvp(parsed_line[0],parsed_line);
+  }else{
+    int status;
+    wait(&status);
+  } 
+}
 /**
  * @Function: redirect
  * @Params:
@@ -166,107 +195,87 @@ void redirect(char **parsed_line){
         newfr=open(red,O_CREAT|O_RDONLY,0644);
         currfr=dup(0);
         dup2(newfr,0);
-        int i = redirection;
-        while (parsed_line[i]) { // zero out everything except the command
-          parsed_line[i] = 0;
-          i++;
-        }
-	int fo = fork();
-	if (!fo){
-	  execvp(parsed_line[0],parsed_line);
-	}else{
-	  int status;
-	  wait(&status);
-	}
-	//execute(parsed_line);
-	dup2(STDIN_FILENO,currfr);
-	close(newfr);
-	exit(0);     
+        zero(parsed_line,redirection);
+        int fo = fork();
+        exec(fo,parsed_line);
+        dup2(STDIN_FILENO,currfr);
+        close(newfr);
+        exit(0);
       }
       else{
-	int status;
-	wait(&status);
+        int status;
+        wait(&status);
       }
     }
     else if(!strcmp(red,">")){
       f=fork();
       if(!f){
-	red=parsed_line[redirection+1];
-	newfw=open(red,O_CREAT|O_WRONLY,0644);
-	currfw=dup(1);
-	dup2(newfw,1);
-	int i = redirection;
-	while (parsed_line[i]) { // zero out everything except the command
-	  parsed_line[i] = 0;
-	  i++;
-	}
-	int fo = fork();
-	if (!fo){
-	  execvp(parsed_line[0],parsed_line);
-	}else{
-	  int status;
-	  wait(&status);
-	}
-	//execute(parsed_line);
-	dup2(STDOUT_FILENO,currfw);
-	close(newfw);
-	exit(0);     
+        red=parsed_line[redirection+1];
+        newfw=open(red,O_CREAT|O_WRONLY,0644);
+        currfw=dup(1);
+        dup2(newfw,1);
+        zero(parsed_line,redirection);
+        int fo = fork();
+        exec(fo, parsed_line);
+        dup2(STDOUT_FILENO,currfw);
+        close(newfw);
+        exit(0); 
       }
       else{
-	int status;
-	wait(&status);
+        int status;
+        wait(&status);
       }
     }
-    else{
-      f=fork();
+    else if( !strcmp(red,"|") ){
+       f=fork();
       if(!f){
-	char *command0[256];
-	char *command1[256];
-	memset(command0, 0, 256);
-	memset(command1, 0, 256);
-	red=parsed_line[redirection+1];
-	newsr = popen(red,"r");
-	newsw = popen(parsed_line[0],"w");
-	newfr = fileno(newsr);
-	newfw = fileno(newsw);
-	currfr = dup(0);
-	currfw = dup(1);
-	dup2(0,newfr);
-	dup2(1,newfw);
-	int i = 0;
-	while (!strcmp(parsed_line[i], "|")) { // command0 is everything before |
-	  command0[i] = parsed_line[i];
-	  i++;
-	}
-	i++;
-	int shift = i;
-	while (parsed_line[i]) { // command1 is everything after |
-	  command1[i-shift] = parsed_line[i];
-	  i++;
-	}
-	if (!fork()) {
-	  execvp(command1[0],command1);
-	} else {
-	  int status;
-	  wait(&status);
-	}
-	if (!fork()){
-	  execvp(command0[0],command0);
-	}
-	else {
-	  int status;
-	  wait(&status);
-	}
-	dup2(currfr,0);
-	dup2(currfw,1);
-	close(newfr);
-	close(newfw);
-	pclose(newsr);
-	pclose(newsw);
+        char *command0[256];
+        char *command1[256];
+        memset(command0, 0, 256);
+        memset(command1, 0, 256);
+        red=parsed_line[redirection+1];
+        newsr = popen(red,"r");
+        newsw = popen(parsed_line[0],"w");
+        newfr = fileno(newsr);
+        newfw = fileno(newsw);
+        currfr = dup(0);
+        currfw = dup(1);
+        dup2(0,newfr);
+        dup2(1,newfw);
+        int i = 0;
+        while (!strcmp(parsed_line[i], "|")) { // command0 is everything before |
+          command0[i] = parsed_line[i];
+          i++;
+        }
+        i++;
+        int shift = i;
+        while (parsed_line[i]) { // command1 is everything after |
+          command1[i-shift] = parsed_line[i];
+          i++;
+        }
+        if (!fork()) {
+          execvp(command1[0],command1);
+        } else {
+          int status;
+          wait(&status);
+        }
+        if (!fork()){
+          execvp(command0[0],command0);
+        }
+        else {
+          int status;
+          wait(&status);
+        }
+        dup2(currfr,0);
+        dup2(currfw,1);
+        close(newfr);
+        close(newfw);
+        pclose(newsr);
+        pclose(newsw);
       }
       else {
-	int status;
-	wait(&status);
+        int status;
+        wait(&status);
       }
     }
   }
