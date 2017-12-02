@@ -141,13 +141,42 @@ int locate_redirect(char ** parsed_line ){
   }
   return 0;// used as false later
 }
+/**
+ * @Function: zero
+ * @Params: char ** parsed_line, int redirection
+ * @Returns: void
+ * @Explanation:This function zeros out everything except for the command in parsed_line
+ */
+
+void zero(char** parsed_line, int redirection){
+  int i = redirection;
+  while (parsed_line[i]) { // zero out everything except the command
+    parsed_line[i] = 0;
+    i++;
+  }
+}
 
 /**
-* @Function: redirect
-* @Params:
-* @Returns:
-* @Explanation:
-*/
+ * @Function: exec
+ * @Params: int forked, char ** parsed_line
+ * @Returns: None
+ * @Explanation: This is super similar to execute except it's takes an int as a parameter so that we can implement modular design and make our functions shorter.
+ */
+
+void exec(int forked, char** parsed_line){
+  if (!forked){
+    execvp(parsed_line[0],parsed_line);
+  }else{
+    int status;
+    wait(&status);
+  }
+}
+/**
+ * @Function: redirect
+ * @Params:
+ * @Returns:
+ * @Explanation:
+ */
 void redirect(char **parsed_line){
   int redirection= locate_redirect(parsed_line);
   if(redirection){
@@ -166,21 +195,10 @@ void redirect(char **parsed_line){
         newfr=open(red,O_CREAT|O_RDONLY,0644);
         currfr=dup(0);
         dup2(newfr,0);
-        int i = redirection;
-        while (parsed_line[i]) { // zero out everything except the command
-          parsed_line[i] = 0;
-          i++;
-        }
+        zero(parsed_line,redirection);
         int fo = fork();
-        if (!fo){
-          execvp(parsed_line[0],parsed_line);
-        }else{
-          int status;
-          wait(&status);
-        }
-        //execute(parsed_line);
+        exec(fo,parsed_line);
         dup2(currfr,STDIN_FILENO);
-        //dup2(STDIN_FILENO,currfr);
         close(newfr);
         exit(0);
       }
@@ -195,21 +213,10 @@ void redirect(char **parsed_line){
         newfw=open(red,O_CREAT|O_WRONLY,0644);
         currfw=dup(1);
         dup2(newfw,1);
-        int i = redirection;
-        while (parsed_line[i]) { // zero out everything except the command
-          parsed_line[i] = 0;
-          i++;
-        }
+        zero(parsed_line,redirection);
         int fo = fork();
-        if (!fo){
-          execvp(parsed_line[0],parsed_line);
-        }else{
-          int status;
-          wait(&status);
-        }
-        //execute(parsed_line);
+        exec(fo, parsed_line);
         dup2(currfw,STDOUT_FILENO);
-        //dup2(STDOUT_FILENO,currfw);
         close(newfw);
         exit(0);
       }
@@ -217,47 +224,35 @@ void redirect(char **parsed_line){
         int status;
         wait(&status);
       }
-    } else {
-      f=fork();
-      if (!f){
-        char *command0[256];
-        char *command1[256];
+    }
+    else if( !strcmp(red,"|") ){
+       f=fork();
+      if(!f){
+        char command0[256];
+        char command1[256];
+        char pipe_info[256];
         memset(command0, 0, 256);
         memset(command1, 0, 256);
-        red=parsed_line[redirection+1];
-        newsr = popen(red,"r");
-        newsw = popen(parsed_line[0],"w");
-        newfr = fileno(newsr);
-        newfw = fileno(newsw);
-        currfr = dup(0);
-        currfw = dup(1);
-        dup2(newfr,0);
-        dup2(newfw,1);
+        memset(pipe_info, 0, 256);
         int i = 0;
-        while (!strcmp(parsed_line[i], "|")) { // command0 is everything before |
-          command0[i] = parsed_line[i];
+        while (strcmp(parsed_line[i], "|")) { // command0 is everything before |
+          strcat(command0, parsed_line[i]);
+          strcat(command0, " ");
           i++;
         }
         i++;
-        int shift = i;
         while (parsed_line[i]) { // command1 is everything after |
-          command1[i-shift] = parsed_line[i];
+          strcat(command1, parsed_line[i]);
+          strcat(command1, " ");
           i++;
         }
-        if (!fork()) {
-          execvp(command0[0],command0);
-        } else {
-          int status0;
-          wait(&status0);
-          if (!fork()){
-            execvp(command1[0],command1);
-          } else {
-            int status1;
-            wait(&status1);
-          }
-        }
-        dup2(currfr,STDIN_FILENO);
-        dup2(currfw,STDOUT_FILENO);
+        //red=parsed_line[redirection+1];
+        newsw = popen(command1,"w");
+        newsr = popen(command0,"r");
+        newfr = fileno(newsr);
+        newfw = fileno(newsw);
+        read(newfr, pipe_info, 256);
+        write(newfw, pipe_info, 256);
         close(newfr);
         close(newfw);
         pclose(newsr);
@@ -287,7 +282,7 @@ int main() {
   char *parsed_line[256];  // command string, but with NULLS instead of spaces
 
   char *init[] = {"clear", NULL};
-  execute(init);
+  //execute(init);
 
   while(1) {
     print_dir();
