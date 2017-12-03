@@ -131,20 +131,21 @@ void print_dir() {
 * @Returns:
 * @Explanation:
 */
-int* locate_redirect(char ** parsed_line ){
-  int * array= malloc(sizeof(int)*10);
+int locate_redirect(char ** parsed_line ){
+  //int * array= malloc(sizeof(int)*10);
   int red_index=0;
-  int i=0;
+  //int i=0;
   while(parsed_line[red_index]){
     if (!strcmp(parsed_line[red_index],">") || !strcmp(parsed_line[red_index],"<") || !strcmp(parsed_line[red_index],"|")){
-      array[i]= red_index;
-      i+=1;
+      //  array[i]= red_index;
+      //i+=1;
+      return red_index;
     }
     red_index++;
   }
-  array[i]=0;
-  printf("\n\n\n ARRAY:\n[%d]:[%d]\n[%d]:[%d]\n[%d]:[%d]",0,array[0],1,array[1], 2, array[2]);
-  return array;// used as false later
+  //array[i]=0;
+  //printf("\n\n\n ARRAY:\n[%d]:[%d]\n[%d]:[%d]\n[%d]:[%d]",0,array[0],1,array[1], 2, array[2]);
+  return 0;// used as false later
 }
 /**
  * @Function: zero
@@ -183,97 +184,97 @@ void exec(int forked, char** parsed_line){
  * @Explanation:
  */
 void redirect(char **parsed_line){
-  int* redirection= locate_redirect(parsed_line);
+  int redirection= locate_redirect(parsed_line);
   int i=0;
-  while(redirection[i]){
-    if(redirection){
-      char* red= parsed_line[redirection[i]];
-      int f;
-      int newfr;
-      int newfw;
-      FILE *newsr;
-      FILE *newsw;
-      int currfr;
-      int currfw;
-      if(!strcmp(red,"<")) {
-        f=fork();
-        if(!f){
-          red=parsed_line[redirection[i]+1];
-          newfr=open(red,O_CREAT|O_RDONLY,0644);
-          currfr=dup(0);
-          dup2(newfr,0);
-          zero(parsed_line,redirection[i]);
-          int fo = fork();
-          exec(fo,parsed_line);
-          dup2(currfr,STDIN_FILENO);
-          close(newfr);
-          exit(0);
-        }
-        else{
-          int status;
-          wait(&status);
-        }
-      } else if(!strcmp(red,">")) {
-        f=fork();
-        if(!f){
-          red=parsed_line[redirection[i]+1];
-          newfw=open(red,O_CREAT|O_WRONLY,0644);
-          currfw=dup(1);
-          dup2(newfw,1);
-          zero(parsed_line,redirection[i]);
-          int fo = fork();
-          exec(fo, parsed_line);
-          dup2(currfw,STDOUT_FILENO);
-          close(newfw);
-          exit(0);
-        }
-        else{
-          int status;
-          wait(&status);
-        }
+  //while(redirection[i]){
+  if(redirection){
+    char* red= parsed_line[redirection];
+    int f;
+    int newfr;
+    int newfw;
+    FILE *newsr;
+    FILE *newsw;
+    int currfr;
+    int currfw;
+    if(!strcmp(red,"<")) {
+      f=fork();
+      if(!f){
+        red=parsed_line[redirection+1];
+        newfr=open(red,O_CREAT|O_RDONLY,0644);
+        currfr=dup(0);
+        dup2(newfr,0);
+        zero(parsed_line,redirection);
+        int fo = fork();
+        exec(fo,parsed_line);
+        dup2(currfr,STDIN_FILENO);
+        close(newfr);
+        exit(0);
       }
-      else if( !strcmp(red,"|") ){
-        f=fork();
-        if(!f){
-          char command0[256];
-          char command1[256];
-          char pipe_info[256];
-          memset(command0, 0, 256);
-          memset(command1, 0, 256);
-          memset(pipe_info, 0, 256);
-          int i = 0;
-          while (strcmp(parsed_line[i], "|")) { // command0 is everything before |
-            strcat(command0, parsed_line[i]);
-            strcat(command0, " ");
-            i++;
-          }
-          i++;
-          while (parsed_line[i]) { // command1 is everything after |
-            strcat(command1, parsed_line[i]);
-            strcat(command1, " ");
-            i++;
-          }
-          //red=parsed_line[redirection+1];
-          newsw = popen(command1,"w");
-          newsr = popen(command0,"r");
-          newfr = fileno(newsr);
-          newfw = fileno(newsw);
-          read(newfr, pipe_info, 256);
-          write(newfw, pipe_info, 256);
-          close(newfr);
-          close(newfw);
-          pclose(newsr);
-          pclose(newsw);
-          exit(0);
-        } else {
-          int status;
-          wait(&status);
-        }
+      else{
+        int status;
+        wait(&status);
+      }
+    } else if(!strcmp(red,">")) {
+      f=fork();
+      if(!f){
+        red=parsed_line[redirection+1];
+        newfw=open(red,O_CREAT|O_WRONLY,0644);
+        currfw=dup(1);
+        dup2(newfw,1);
+        zero(parsed_line,redirection);
+        int fo = fork();
+        exec(fo, parsed_line);
+        dup2(currfw,STDOUT_FILENO);
+        close(newfw);
+        exit(0);
+      }
+      else{
+        int status;
+        wait(&status);
       }
     }
-    i+=1;
+    else if( !strcmp(red,"|") ){
+      f=fork();
+      if(!f){
+        char command0[256];
+        char command1[256];
+        char pipe_info[256];
+        memset(command0, 0, 256);
+        memset(command1, 0, 256);
+        memset(pipe_info, 0, 256);
+        int i = 0;
+        while (strcmp(parsed_line[i], "|")) { // command0 is everything before |
+          strcat(command0, parsed_line[i]);
+          strcat(command0, " ");
+          i++;
+        }
+        i++;
+        while (parsed_line[i]) { // command1 is everything after |
+          strcat(command1, parsed_line[i]);
+          strcat(command1, " ");
+          i++;
+        }
+        //red=parsed_line[redirection+1];
+        newsw = popen(command1,"w");
+        newsr = popen(command0,"r");
+        newfr = fileno(newsr);
+        newfw = fileno(newsw);
+        read(newfr, pipe_info, 256);
+        write(newfw, pipe_info, 256);
+        close(newfr);
+        close(newfw);
+        pclose(newsr);
+        pclose(newsw);
+        exit(0);
+      } else {
+        int status;
+        wait(&status);
+      }
+    }
   }
+  //i+=1;
 }
+
 //copy this for future functions:
 
 /**
