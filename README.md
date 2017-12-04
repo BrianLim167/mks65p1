@@ -1,4 +1,4 @@
-# mks65p1 C-shell
+# C-shell
 ## Bayan Berri & Brian Lim
 
 ### Features
