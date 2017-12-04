@@ -148,6 +148,22 @@ int locate_redirect(char ** parsed_line ){
   return 0;// used as false later
 }
 /**
+* @Function: locate_symbol
+* @Params:
+* @Returns:
+* @Explanation:
+*/
+int locate_symbol(char ** parsed_line, char* symbol){
+  int red_index=0;
+  while(parsed_line[red_index]){
+    if (!strcmp(parsed_line[red_index],symbol)){
+      return red_index;
+    }
+    red_index++;
+  }
+  return 0;
+}
+/**
  * @Function: zero
  * @Params: char ** parsed_line, int redirection
  * @Returns: void
@@ -196,7 +212,32 @@ void redirect(char **parsed_line){
     FILE *newsw;
     int currfr;
     int currfw;
-    if(!strcmp(red,"<")) {
+    int in_index = locate_symbol(parsed_line, "<");
+    int out_index = locate_symbol(parsed_line, ">");
+    if ( in_index && out_index ) {
+      f = fork();
+      if (!f) {
+        char *in = parsed_line[in_index + 1];
+        char *out = parsed_line[out_index + 1];
+        newfr = open(in, O_CREAT | O_RDONLY, 0644);
+        newfw = open(out, O_CREAT | O_WRONLY, 0644);
+        currfr = dup(0);
+        currfw = dup(1);
+        dup2(newfr, 0);
+        dup2(newfw, 1);
+        zero(parsed_line, in_index);
+        zero(parsed_line, out_index);
+        exec(fork(), parsed_line);
+        dup2(currfr, STDIN_FILENO);
+        dup2(currfw, STDOUT_FILENO);
+        close(newfr);
+        close(newfw);
+        exit(0);
+      } else {
+        int status;
+        wait(&status);
+      }
+    } else if(!strcmp(red,"<")) {
       f=fork();
       if(!f){
         red=parsed_line[redirection+1];
