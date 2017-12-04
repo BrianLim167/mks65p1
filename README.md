@@ -5,6 +5,7 @@
 * Forks and executes commands
 * Parses multiple commands on one line
 * cd implementation cd alone or followed by a tilde takes you home
+* exit implementation
 * Simple redirection using <, > and |
 * Complex redirection (redirecting more than once)
 
