@@ -25,6 +25,12 @@ void print_dir();
 
 int locate_redirect(char **parsed_line );
 
+int locate_symbol(char ** parsed_line, char* symbol);
+
+void zero(char** parsed_line, int redirection);
+
 void redirect(char **parsed_line);
+
+void exec(int forked, char** parsed_line);
 
 int main();
